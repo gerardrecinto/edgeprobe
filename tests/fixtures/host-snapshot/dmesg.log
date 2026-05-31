@@ -1,0 +1,4 @@
+[  144.712340] ixgbe 0000:5e:00.0 eth0: tx queue 3 timeout, resetting adapter
+[  145.020114] nvidia 0000:65:00.0: Xid 79, GPU has fallen off the bus
+[  146.381002] TCP: eth0: possible SYN retrans storm detected
+

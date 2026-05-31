@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgeprobe"
+version = "0.1.0"
+description = "Linux edge systems readiness triage for containers, networks, drivers, and CI."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Gerard Recinto" }]
+keywords = ["linux", "kubernetes", "docker", "networking", "devops", "ci"]
+
+[project.scripts]
+edgeprobe = "edgeprobe.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+

@@ -1,0 +1,9 @@
+<svg width="960" height="240" viewBox="0 0 960 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="240" rx="20" fill="#0B1020"/>
+  <path d="M78 122C118 52 190 52 230 122C190 192 118 192 78 122Z" fill="#38BDF8" fill-opacity="0.16" stroke="#38BDF8" stroke-width="8"/>
+  <circle cx="154" cy="122" r="38" fill="#22C55E"/>
+  <path d="M154 84V160M116 122H192" stroke="#0B1020" stroke-width="12" stroke-linecap="round"/>
+  <text x="280" y="112" fill="#F8FAFC" font-family="Menlo, Consolas, monospace" font-size="58" font-weight="700">edgeprobe</text>
+  <text x="284" y="162" fill="#94A3B8" font-family="Menlo, Consolas, monospace" font-size="24">linux · containers · networks · readiness</text>
+</svg>
+

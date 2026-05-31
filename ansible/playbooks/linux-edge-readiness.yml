@@ -1,0 +1,39 @@
+---
+- name: Capture Linux edge readiness snapshot
+  hosts: edge_nodes
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Create snapshot directory
+      ansible.builtin.file:
+        path: /var/tmp/edgeprobe
+        state: directory
+        mode: "0755"
+
+    - name: Capture kernel release
+      ansible.builtin.command: uname -r
+      changed_when: false
+      register: kernel_release
+
+    - name: Capture network routes
+      ansible.builtin.command: ip route
+      changed_when: false
+      register: ip_route
+
+    - name: Persist snapshot files
+      ansible.builtin.copy:
+        dest: "/var/tmp/edgeprobe/{{ item.name }}"
+        content: "{{ item.content }}"
+        mode: "0644"
+      loop:
+        - name: kernel_release.txt
+          content: "{{ kernel_release.stdout }}"
+        - name: ip_route.txt
+          content: "{{ ip_route.stdout }}"
+
+    - name: Run edgeprobe container
+      ansible.builtin.command:
+        cmd: docker run --rm -v /var/tmp/edgeprobe:/snapshot:ro ghcr.io/gerardrecinto/edgeprobe:latest analyze /snapshot
+      changed_when: false
+

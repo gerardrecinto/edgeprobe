@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: edgeprobe
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app: edgeprobe
+  template:
+    metadata:
+      labels:
+        app: edgeprobe
+    spec:
+      hostNetwork: true
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: edgeprobe
+          image: ghcr.io/gerardrecinto/edgeprobe:latest
+          args: ["analyze", "/host-snapshot", "--output", "json"]
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+

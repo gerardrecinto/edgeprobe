@@ -1,0 +1,2 @@
+65:00.0 VGA compatible controller: NVIDIA Corporation GA102GL [RTX A5000] (rev a1)
+

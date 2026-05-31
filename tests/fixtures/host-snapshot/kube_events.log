@@ -1,0 +1,3 @@
+Warning  Unhealthy          pod/video-ingest-7c5c  Readiness probe failed: HTTP probe failed with statuscode: 503
+Warning  FailedScheduling   pod/gpu-transcoder-0   0/3 nodes are available: 1 node had untolerated node.kubernetes.io/memory-pressure
+
