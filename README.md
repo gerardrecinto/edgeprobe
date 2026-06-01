@@ -97,7 +97,7 @@ edgeprobe analyze tests/fixtures/host-snapshot --output json
 | Device drivers | `ebpf/packet_latency_kprobe.c` and driver timeout/Xid/PCIe detection |
 | Real-time and embedded systems | RT kernel fixture, isolated CPU boot flags, latency-focused remediation |
 | GPU/CPU heterogeneous systems | GPU inventory detection and device-plugin readiness guidance |
-| CI/CD delivery | `Jenkinsfile` with unit tests, image build, snapshot analysis, and archived JSON reports |
+| CI/CD delivery | `Jenkinsfile` plus GitHub Actions workflow and archived JSON reports |
 | Cellular and WiFi | RSRP/RSRQ/SINR/WLAN roam telemetry classification |
 
 ---
