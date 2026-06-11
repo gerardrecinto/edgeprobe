@@ -14,6 +14,10 @@ Built to demonstrate hands-on depth across Linux internals, Docker/Kubernetes, P
 ![Tests](https://img.shields.io/badge/Tests-6%20passed-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
+## Business impact
+
+No standard tooling exists for triaging Linux edge device readiness before deploying 5G/6G workloads — engineers spend hours on manual checks per site. edgeprobe runs a full readiness audit in seconds and exits non-zero in CI when a node fails, blocking broken deployments before they reach the fleet. Target buyers: telco operators, OEM edge platform teams, and systems integrators running O-RAN deployments at scale.
+
 ---
 
 ## What it looks like in practice
