@@ -16,7 +16,7 @@ Built to demonstrate hands-on depth across Linux internals, Docker/Kubernetes, P
 
 ## Business impact
 
-No standard tooling exists for triaging Linux edge device readiness before deploying 5G/6G workloads — engineers spend hours on manual checks per site. edgeprobe runs a full readiness audit in seconds and exits non-zero in CI when a node fails, blocking broken deployments before they reach the fleet. Target buyers: telco operators, OEM edge platform teams, and systems integrators running O-RAN deployments at scale.
+No standard tooling exists for triaging Linux edge device readiness before deploying 5G/6G workloads: engineers spend hours on manual checks per site. edgeprobe runs a full readiness audit in seconds and exits non-zero in CI when a node fails, blocking broken deployments before they reach the fleet. Target buyers: telco operators, OEM edge platform teams, and systems integrators running O-RAN deployments at scale.
 
 ---
 
