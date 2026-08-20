@@ -56,6 +56,32 @@ class ClassifierTests(unittest.TestCase):
 
         self.assertIn(Category.CELLULAR_WIFI, {signal.category for signal in report.signals})
 
+    def test_rt_stall_on_rt_provisioned_node_is_critical(self) -> None:
+        snapshot = Snapshot(
+            name="rt-stall",
+            kernel_release="6.6.32-edge-rt",
+            kernel_cmdline="isolcpus=2-3 nohz_full=2-3 rcu_nocbs=2-3",
+            dmesg_lines=("[  200.1] rcu_sched self-detected stall on CPU 2",),
+        )
+
+        report = classify(snapshot)
+        signal = next(s for s in report.signals if s.category == Category.REALTIME_LATENCY)
+
+        self.assertEqual(signal.severity, Severity.CRITICAL)
+
+    def test_rt_provisioned_node_with_no_stalls_passes(self) -> None:
+        snapshot = Snapshot(
+            name="rt-clean",
+            kernel_release="6.6.32-edge-rt",
+            kernel_cmdline="isolcpus=2-3 nohz_full=2-3 rcu_nocbs=2-3",
+            dmesg_lines=(),
+        )
+
+        report = classify(snapshot)
+
+        self.assertNotIn(Category.REALTIME_LATENCY, {s.category for s in report.signals})
+        self.assertIn("realtime kernel latency scan", report.passed_checks)
+
 
 if __name__ == "__main__":
     unittest.main()
