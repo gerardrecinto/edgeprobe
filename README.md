@@ -11,7 +11,7 @@ Built to demonstrate hands-on depth across Linux internals, Docker/Kubernetes, P
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-edge%20systems-FCC624?logo=linux&logoColor=black)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-DaemonSet-326CE5?logo=kubernetes&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-6%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-13%20passed-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ## Business impact
@@ -99,7 +99,7 @@ edgeprobe analyze tests/fixtures/host-snapshot --output json
 | Infrastructure provisioning | `ansible/playbooks/linux-edge-readiness.yml` captures and runs snapshots |
 | Full-stack networking | Route, socket, MTU/CNI, TCP retransmission, OS-to-service reasoning |
 | Device drivers | `ebpf/packet_latency_kprobe.c` and driver timeout/Xid/PCIe detection |
-| Real-time and embedded systems | RT kernel fixture, isolated CPU boot flags, latency-focused remediation |
+| Real-time and embedded systems | RT kernel fixture, isolated CPU boot flags, rcu-stall/lockup dmesg detection |
 | GPU/CPU heterogeneous systems | GPU inventory detection and device-plugin readiness guidance |
 | CI/CD delivery | `Jenkinsfile` plus GitHub Actions workflow and archived JSON reports |
 | Cellular and WiFi | RSRP/RSRQ/SINR/WLAN roam telemetry classification |
@@ -127,7 +127,15 @@ edgeprobe analyze tests/fixtures/host-snapshot --output json
 
 # Run without installing
 PYTHONPATH=src python3 -m edgeprobe analyze tests/fixtures/host-snapshot
+
+# Fail the build on warnings too, not just critical signals
+edgeprobe analyze tests/fixtures/host-snapshot --fail-on warn
 ```
+
+`--fail-on` controls the exit code threshold: `critical` (default) only fails on
+critical signals, `warn` fails on warning or critical, `info` fails if any signal
+at all is present. The report itself always lists every signal regardless of
+this setting.
 
 ---
 
