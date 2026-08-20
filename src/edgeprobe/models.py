@@ -21,6 +21,13 @@ class Severity(StrEnum):
     CRITICAL = "critical"
 
 
+_SEVERITY_RANK = {Severity.CRITICAL: 0, Severity.WARN: 1, Severity.INFO: 2}
+
+
+def severity_rank(severity: Severity) -> int:
+    return _SEVERITY_RANK[severity]
+
+
 @dataclass(frozen=True)
 class Signal:
     category: Category

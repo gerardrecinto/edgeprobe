@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from edgeprobe.models import Report, Severity
+from edgeprobe.models import Report, Severity, severity_rank
 
 
 def terminal_report(report: Report) -> str:
@@ -69,8 +69,4 @@ def json_report(report: Report) -> str:
 
 def status_icon(status: str) -> str:
     return "✗" if status == "ACTION REQUIRED" else "!" if status == "WATCH" else "✓"
-
-
-def severity_rank(severity: Severity) -> int:
-    return {Severity.CRITICAL: 0, Severity.WARN: 1, Severity.INFO: 2}[severity]
 

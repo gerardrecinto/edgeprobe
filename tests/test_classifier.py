@@ -2,7 +2,7 @@ from pathlib import Path
 import unittest
 
 from edgeprobe.classifier import classify
-from edgeprobe.models import Category, Severity
+from edgeprobe.models import Category, Severity, Snapshot
 from edgeprobe.parsers import load_snapshot
 
 
@@ -28,6 +28,33 @@ class ClassifierTests(unittest.TestCase):
 
         self.assertEqual(driver.severity, Severity.CRITICAL)
         self.assertIn("timeout", driver.evidence.lower())
+
+    def test_signals_are_sorted_critical_first(self) -> None:
+        report = classify(load_snapshot(FIXTURE))
+
+        ranks = {Severity.CRITICAL: 0, Severity.WARN: 1, Severity.INFO: 2}
+        severities = [ranks[signal.severity] for signal in report.signals]
+        self.assertEqual(severities, sorted(severities))
+
+    def test_strong_cellular_signal_is_not_flagged_weak(self) -> None:
+        snapshot = Snapshot(
+            name="strong-signal",
+            wireless_lines=("wwan0 lte rsrp=-85 rsrq=-9 sinr=15 handover=0",),
+        )
+
+        report = classify(snapshot)
+
+        self.assertNotIn(Category.CELLULAR_WIFI, {signal.category for signal in report.signals})
+
+    def test_weak_cellular_signal_is_still_flagged(self) -> None:
+        snapshot = Snapshot(
+            name="weak-signal",
+            wireless_lines=("wwan0 lte rsrp=-118 rsrq=-16 sinr=-2 handover=3",),
+        )
+
+        report = classify(snapshot)
+
+        self.assertIn(Category.CELLULAR_WIFI, {signal.category for signal in report.signals})
 
 
 if __name__ == "__main__":

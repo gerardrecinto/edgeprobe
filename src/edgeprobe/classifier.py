@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from edgeprobe.models import Category, Report, Severity, Signal, Snapshot
+from edgeprobe.models import Category, Report, Severity, Signal, Snapshot, severity_rank
 
 
 _DRIVER_PATTERNS = (
@@ -20,6 +20,7 @@ _KUBE_PATTERNS = (
 _WIRELESS_PATTERNS = (
     re.compile(r"\b(rsrp|rsrq|sinr|lte|5g|nr|wifi|wlan|roam)\b", re.IGNORECASE),
 )
+_WIRELESS_METRICS = re.compile(r"\b(rsrp|sinr)=(-?\d+)\b", re.IGNORECASE)
 
 
 def classify(snapshot: Snapshot) -> Report:
@@ -33,6 +34,8 @@ def classify(snapshot: Snapshot) -> Report:
     _classify_heterogeneous_compute(snapshot, signals, passed)
     _classify_wireless(snapshot, signals, passed)
     _classify_ci_delivery(snapshot, signals, passed)
+
+    signals.sort(key=lambda signal: severity_rank(signal.severity))
 
     confidence = min(0.98, 0.56 + (len(signals) * 0.07) + (len(passed) * 0.02))
     summary = _summary(signals)
@@ -134,9 +137,19 @@ def _classify_heterogeneous_compute(
         passed.append("gpu inventory")
 
 
+def _is_weak_wireless_line(line: str) -> bool:
+    for metric, value in _WIRELESS_METRICS.findall(line):
+        reading = int(value)
+        if metric.lower() == "rsrp" and reading <= -110:
+            return True
+        if metric.lower() == "sinr" and reading < 0:
+            return True
+    return False
+
+
 def _classify_wireless(snapshot: Snapshot, signals: list[Signal], passed: list[str]) -> None:
     hits = [line for line in snapshot.wireless_lines if any(p.search(line) for p in _WIRELESS_PATTERNS)]
-    weak_signal = [line for line in hits if re.search(r"rsrp=-1[1-9][0-9]|sinr=[-0-5]", line.lower())]
+    weak_signal = [line for line in hits if _is_weak_wireless_line(line)]
     if weak_signal:
         signals.append(
             Signal(
