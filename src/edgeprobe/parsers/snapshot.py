@@ -60,5 +60,9 @@ def load_snapshot(snapshot_dir: Path) -> Snapshot:
         kube_events=_read_lines(snapshot_dir / "kube_events.log"),
         docker_rows=_read_lines(snapshot_dir / "docker_ps.txt"),
         wireless_lines=_read_lines(snapshot_dir / "wireless.log"),
+        mdstat_lines=_read_lines(snapshot_dir / "proc_mdstat.txt"),
+        mount_lines=_read_lines(snapshot_dir / "proc_mounts.txt"),
+        bonding_lines=_read_lines(snapshot_dir / "proc_net_bonding.txt"),
+        zpool_lines=_read_lines(snapshot_dir / "zpool_status.txt"),
     )
 

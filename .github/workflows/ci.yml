@@ -18,6 +18,10 @@ jobs:
           python-version: "3.12"
       - name: Unit tests
         run: PYTHONPATH=src python -m unittest discover -s tests
+      - name: Storage fixture is flagged, healthy one is clean
+        run: |
+          PYTHONPATH=src python -m edgeprobe analyze tests/fixtures/storage-degraded || test $? -eq 2
+          PYTHONPATH=src python -m edgeprobe analyze tests/fixtures/storage-healthy
       - name: Demo command
         run: PYTHONPATH=src python -m edgeprobe analyze tests/fixtures/host-snapshot || test $? -eq 2
 

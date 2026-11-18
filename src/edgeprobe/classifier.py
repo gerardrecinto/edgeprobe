@@ -41,6 +41,10 @@ def classify(snapshot: Snapshot) -> Report:
     _classify_wireless(snapshot, signals, passed)
     _classify_realtime(snapshot, signals, passed)
     _classify_ci_delivery(snapshot, signals, passed)
+    _classify_raid(snapshot, signals, passed)
+    _classify_nfs(snapshot, signals, passed)
+    _classify_bonding(snapshot, signals, passed)
+    _classify_zfs(snapshot, signals, passed)
 
     signals.sort(key=lambda signal: severity_rank(signal.severity))
 
@@ -218,3 +222,150 @@ def _summary(signals: list[Signal]) -> str:
     warn = sum(1 for signal in signals if signal.severity == Severity.WARN)
     return f"{critical} critical and {warn} warning signal(s) found across Linux edge readiness checks."
 
+
+
+_MD_STATUS = re.compile(r"\[(\d+)/(\d+)\]\s+\[([U_]+)\]")
+_MD_REBUILD = re.compile(r"(recovery|resync|reshape)\s*=\s*([0-9.]+)%")
+
+
+def _classify_raid(snapshot: Snapshot, signals: list[Signal], passed: list[str]) -> None:
+    if not snapshot.mdstat_lines:
+        return
+    array = ""
+    degraded: list[str] = []
+    rebuilding: list[str] = []
+    for line in snapshot.mdstat_lines:
+        if line.startswith("md") and " : " in line:
+            array = line.split(" : ", 1)[0]
+        match = _MD_STATUS.search(line)
+        if match and int(match.group(2)) < int(match.group(1)):
+            degraded.append(f"{array} {match.group(0)}")
+        rebuild = _MD_REBUILD.search(line)
+        if rebuild:
+            rebuilding.append(f"{array} {rebuild.group(1)} {rebuild.group(2)}%")
+    if degraded:
+        signals.append(
+            Signal(
+                Category.STORAGE,
+                Severity.CRITICAL,
+                "Software RAID array is degraded",
+                degraded[0],
+                "Replace the failed member and start a rebuild now. Another failure on a RAID 5 or "
+                "RAID 10 pair loses data. Check smartctl on the survivors first.",
+            )
+        )
+    elif rebuilding:
+        signals.append(
+            Signal(
+                Category.STORAGE,
+                Severity.WARN,
+                "Software RAID is rebuilding",
+                rebuilding[0],
+                "Expect lower throughput until the rebuild ends. Hold heavy ingest or benchmarks.",
+            )
+        )
+    else:
+        passed.append("md raid health")
+
+
+def _classify_nfs(snapshot: Snapshot, signals: list[Signal], passed: list[str]) -> None:
+    mounts = []
+    for line in snapshot.mount_lines:
+        fields = line.split()
+        if len(fields) >= 4 and fields[2].startswith("nfs"):
+            mounts.append((line, fields[3].split(",")))
+    if not mounts:
+        return
+    for line, opts in mounts:
+        problems = []
+        if "soft" in opts:
+            problems.append("soft mount can return I/O errors and lose writes")
+        if "vers=3" in opts or any(o.startswith("vers=2") for o in opts):
+            problems.append("NFS version below 4")
+        if "proto=udp" in opts:
+            problems.append("UDP transport")
+        sizes = [int(o.split("=", 1)[1]) for o in opts if o.startswith(("rsize=", "wsize=")) and o.split("=", 1)[1].isdigit()]
+        if sizes and min(sizes) < 1048576:
+            problems.append(f"transfer size {min(sizes)} bytes is below 1 MiB")
+        if problems:
+            signals.append(
+                Signal(
+                    Category.STORAGE,
+                    Severity.WARN,
+                    "NFS mount options are wrong for large sequential writes",
+                    f"{line} ({'; '.join(problems)})",
+                    "Mount with vers=4.2, hard, proto=tcp, rsize and wsize of 1 MiB, and nconnect where the "
+                    "server supports it.",
+                )
+            )
+            return
+    passed.append("nfs mount options")
+
+
+def _classify_bonding(snapshot: Snapshot, signals: list[Signal], passed: list[str]) -> None:
+    if not snapshot.bonding_lines:
+        return
+    slave = ""
+    down: list[str] = []
+    bond_down = False
+    for line in snapshot.bonding_lines:
+        if line.startswith("Slave Interface:"):
+            slave = line.split(":", 1)[1].strip()
+        elif line.startswith("MII Status:") and line.split(":", 1)[1].strip() == "down":
+            if slave:
+                down.append(slave)
+            else:
+                bond_down = True
+    if bond_down:
+        signals.append(
+            Signal(
+                Category.NETWORK_PATH,
+                Severity.CRITICAL,
+                "Bonded interface is down",
+                "MII Status: down on the bond",
+                "Check cables, switch ports and the LACP partner. Nothing is passing traffic on this bond.",
+            )
+        )
+    elif down:
+        signals.append(
+            Signal(
+                Category.NETWORK_PATH,
+                Severity.WARN,
+                "A bond member link is down",
+                f"slave {down[0]} reports MII Status: down",
+                "The bond has lost redundancy and bandwidth. Check the cable, optic and switch port.",
+            )
+        )
+    else:
+        passed.append("bond link state")
+
+
+def _classify_zfs(snapshot: Snapshot, signals: list[Signal], passed: list[str]) -> None:
+    if not snapshot.zpool_lines:
+        return
+    bad = [line for line in snapshot.zpool_lines
+           if re.match(r"state:\s*(DEGRADED|FAULTED|UNAVAIL|SUSPENDED)", line)]
+    errors = [line for line in snapshot.zpool_lines
+              if line.startswith("errors:") and "No known data errors" not in line]
+    if bad:
+        signals.append(
+            Signal(
+                Category.STORAGE,
+                Severity.CRITICAL,
+                "ZFS pool is not healthy",
+                bad[0],
+                "Run zpool status -v, replace the faulted device, and scrub after the resilver.",
+            )
+        )
+    elif errors:
+        signals.append(
+            Signal(
+                Category.STORAGE,
+                Severity.WARN,
+                "ZFS reports data errors",
+                errors[0],
+                "Run zpool status -v to see the affected files, then scrub.",
+            )
+        )
+    else:
+        passed.append("zfs pool health")

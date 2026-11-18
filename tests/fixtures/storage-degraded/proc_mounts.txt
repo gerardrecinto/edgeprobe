@@ -1,0 +1,2 @@
+/dev/mapper/vg_ingest-data /srv/ingest xfs rw,noatime,attr2,inode64 0 0
+nas01:/export/shots /mnt/shots nfs rw,vers=3,soft,proto=udp,rsize=32768,wsize=32768,timeo=14 0 0

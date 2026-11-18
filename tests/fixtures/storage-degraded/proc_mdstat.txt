@@ -1,0 +1,4 @@
+Personalities : [raid10]
+md0 : active raid10 nvme3n1[3] nvme2n1[2] nvme0n1[0]
+      1953259520 blocks super 1.2 512K chunks 2 near-copies [4/3] [U_UU]
+      [==>..................]  recovery = 12.4% (121000000/976629760) finish=88.2min speed=161000K/sec

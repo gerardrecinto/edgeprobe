@@ -13,6 +13,7 @@ class Category(StrEnum):
     CELLULAR_WIFI = "cellular_wifi"
     CI_DELIVERY = "ci_delivery"
     RESOURCE_PRESSURE = "resource_pressure"
+    STORAGE = "storage"
 
 
 class Severity(StrEnum):
@@ -51,6 +52,10 @@ class Snapshot:
     kube_events: tuple[str, ...] = ()
     docker_rows: tuple[str, ...] = ()
     wireless_lines: tuple[str, ...] = ()
+    mdstat_lines: tuple[str, ...] = ()
+    mount_lines: tuple[str, ...] = ()
+    bonding_lines: tuple[str, ...] = ()
+    zpool_lines: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
