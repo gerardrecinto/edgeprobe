@@ -1,0 +1,4 @@
+pool: tank
+state: DEGRADED
+status: One or more devices could not be opened.
+errors: No known data errors

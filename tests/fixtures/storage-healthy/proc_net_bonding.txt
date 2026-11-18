@@ -1,0 +1,7 @@
+Ethernet Channel Bonding Driver: v5.14.0
+Bonding Mode: IEEE 802.3ad Dynamic link aggregation
+MII Status: up
+Slave Interface: ens1f0
+MII Status: up
+Slave Interface: ens1f1
+MII Status: up

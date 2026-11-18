@@ -11,7 +11,7 @@ Built to demonstrate hands-on depth across Linux internals, Docker/Kubernetes, P
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-edge%20systems-FCC624?logo=linux&logoColor=black)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-DaemonSet-326CE5?logo=kubernetes&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-6%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-11%20passed-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
@@ -98,6 +98,7 @@ edgeprobe analyze tests/fixtures/host-snapshot --output json
 | Real-time and embedded systems | RT kernel fixture, isolated CPU boot flags, latency-focused remediation |
 | GPU/CPU heterogeneous systems | GPU inventory detection and device-plugin readiness guidance |
 | CI/CD delivery | `Jenkinsfile` plus GitHub Actions workflow and archived JSON reports |
+| Storage and bonded links | md RAID, NFS mount options, bond members and ZFS pool state from `/proc` and `zpool status` |
 | Cellular and WiFi | RSRP/RSRQ/SINR/WLAN roam telemetry classification |
 
 ---
@@ -144,6 +145,12 @@ PYTHONPATH=src python3 -m edgeprobe analyze tests/fixtures/host-snapshot
 | `kube_events.log` | `kubectl get events -A` |
 | `docker_ps.txt` | `docker ps --format ...` |
 | `wireless.log` | modem/WiFi telemetry export |
+| `proc_mdstat.txt` | `/proc/mdstat` (optional) |
+| `proc_mounts.txt` | `/proc/mounts` (optional) |
+| `proc_net_bonding.txt` | `cat /proc/net/bonding/*` (optional) |
+| `zpool_status.txt` | `zpool status` (optional) |
+
+The storage files are optional. Without them nothing changes. With them, edgeprobe flags a degraded or rebuilding md RAID array, NFS mounts that are soft, below version 4, on UDP or under 1 MiB transfers, a down bond member, and an unhealthy ZFS pool. `scripts/collect_storage.sh OUTDIR` writes these files from the local host. Fixtures: `tests/fixtures/storage-degraded` and `storage-healthy`.
 
 ---
 
