@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "edgeprobe"
-version = "0.1.0"
+version = "1.1.0"
 description = "Linux edge systems readiness triage for containers, networks, drivers, and CI."
 readme = "README.md"
 requires-python = ">=3.11"

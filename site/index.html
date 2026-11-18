@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>edgeprobe: is this Linux edge node ready</title>
+<meta name="description" content="Edit a Linux host snapshot and see driver, network, Kubernetes, container, wireless and real-time kernel signals classified. The real classifier runs in your browser.">
+<meta property="og:title" content="edgeprobe">
+<meta property="og:description" content="Edit a Linux host snapshot and see driver, network, Kubernetes, container, wireless and real-time kernel signals classified. The real classifier runs in your browser.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314b8a6'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+
+:root{--bg:#f8fafc;--panel:#fff;--panel2:#f1f5f9;--line:#e2e8f0;--fg:#0f172a;--mute:#475569;--brand:#0f766e;--brand-bg:#ccfbf1;--ok:#047857;--ok-bg:#d1fae5;--err:#b91c1c;--err-bg:#fee2e2;--code:#0b1220;--code-fg:#e2e8f0}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#070d1a;--panel:#0d1526;--panel2:#111c33;--line:#1e2b47;--fg:#e8eefc;--mute:#9fb0cc;--brand:#2dd4bf;--brand-bg:#062f2b;--ok:#34d399;--ok-bg:#06382b;--err:#fca5a5;--err-bg:#3b1212}}
+:root[data-theme=dark]{--bg:#070d1a;--panel:#0d1526;--panel2:#111c33;--line:#1e2b47;--fg:#e8eefc;--mute:#9fb0cc;--brand:#2dd4bf;--brand-bg:#062f2b;--ok:#34d399;--ok-bg:#06382b;--err:#fca5a5;--err-bg:#3b1212}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--brand)}
+code,pre,textarea,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:56px;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--fg);text-decoration:none}
+.logo i{width:22px;height:22px;border-radius:6px;background:#14b8a6;display:inline-block}
+nav .links{display:flex;gap:18px;align-items:center;font-size:14px}
+nav .links a{color:var(--mute);text-decoration:none}
+nav .links a:hover{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:var(--fg);background:var(--panel);cursor:pointer;font-size:15px}
+.btn.primary{background:#14b8a6;border-color:#14b8a6;color:#04211e}
+.btn.primary:hover{background:#2dd4bf}
+.btn:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #14b8a6;outline-offset:2px}
+.hero{padding:72px 0 40px;text-align:center}
+.pill{display:inline-block;font-size:13px;color:var(--brand);background:var(--brand-bg);padding:4px 12px;border-radius:99px;margin-bottom:20px;font-weight:600}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.08;margin:0 0 18px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--brand)}
+.lede{max-width:700px;margin:0 auto 28px;color:var(--mute);font-size:18px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stats{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-top:36px;color:var(--mute);font-size:14px}
+.stats b{display:block;color:var(--fg);font-size:22px}
+section{padding:56px 0}
+h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 28px;max-width:720px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}nav .links .hide-s{display:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.card h3{margin:0;padding:12px 16px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 12px system-ui;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);cursor:pointer;text-transform:none;letter-spacing:0}
+.chip[aria-pressed=true]{background:var(--brand-bg);border-color:var(--brand);color:var(--brand)}
+#log{display:block;width:100%;height:420px;border:0;padding:12px 14px;font-size:12.5px;line-height:1.55;background:var(--code);color:var(--code-fg);resize:vertical;white-space:pre;overflow:auto}
+.src{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--mute);flex-wrap:wrap}
+.out{min-height:420px}
+.status{padding:16px;color:var(--mute);font-size:14px}
+.verdict{padding:18px 16px;border-bottom:1px solid var(--line);background:var(--err-bg)}
+.verdict.unknown{background:var(--panel2)}
+.verdict b{display:block;font-size:20px;text-transform:uppercase;letter-spacing:.04em;color:var(--err)}
+.verdict.unknown b{color:var(--mute)}
+.verdict span{font-size:14px;color:var(--mute)}
+.sec{padding:14px 16px;border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:0}
+.sec h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.bar{height:10px;border-radius:99px;background:var(--panel2);overflow:hidden;max-width:260px;display:inline-block;vertical-align:middle;margin-right:10px;width:60%}
+.bar i{display:block;height:100%;background:#14b8a6}
+.site{padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.site:last-child{border:0}
+.site code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12px}
+.fix{background:var(--ok-bg);color:var(--ok);padding:10px 12px;border-radius:8px;font-size:14px}
+.note{font-size:13px;color:var(--mute);margin-top:12px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:860px){.steps{grid-template-columns:minmax(0,1fr)}}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.step .n{width:28px;height:28px;border-radius:8px;background:var(--brand-bg);color:var(--brand);display:grid;place-items:center;font-weight:700;margin-bottom:10px}
+.step h3{margin:0 0 6px;font-size:17px}
+.step p{margin:0;color:var(--mute);font-size:15px}
+.tw{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow-x:auto;max-width:100%}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);background:var(--panel2)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-family:ui-monospace,monospace;font-weight:700;white-space:nowrap}
+.install pre{background:var(--code);color:var(--code-fg);padding:16px;border-radius:12px;overflow-x:auto;font-size:13.5px;margin:0 0 12px}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.cols2{grid-template-columns:minmax(0,1fr)}}
+.limits{background:var(--panel);border:1px solid var(--line);border-left:4px solid #f59e0b;border-radius:10px;padding:16px 20px}
+.limits ul{margin:8px 0 0;padding-left:20px;color:var(--mute)}
+footer{border-top:1px solid var(--line);padding:32px 0;color:var(--mute);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.fl{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+.fl .chip.has::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--brand);margin-left:6px;vertical-align:middle}
+#txt{display:block;width:100%;height:300px;border:0;padding:12px 14px;font-size:12.5px;line-height:1.55;background:var(--code);color:var(--code-fg);resize:vertical;white-space:pre;overflow:auto}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+.ctrl select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+.out{min-height:380px;max-height:620px;overflow:auto}
+.stat{padding:16px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--line)}
+.stat b{font-size:20px;text-transform:uppercase;letter-spacing:.04em}
+.stat.ready{background:var(--ok-bg)} .stat.ready b{color:var(--ok)}
+.stat.watch{background:#fef3c7} .stat.watch b{color:#92400e}
+.stat.action{background:var(--err-bg)} .stat.action b{color:var(--err)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .stat.watch{background:#3a2a07} :root:not([data-theme=light]) .stat.watch b{color:#fcd34d}}
+.stat span{color:var(--mute);font-size:14px}
+.sg{padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.sg:last-child{border:0}
+.sev{font:700 11px ui-monospace,monospace;padding:2px 8px;border-radius:6px;margin-right:6px}
+.sev.critical{background:var(--err-bg);color:var(--err)} .sev.warn{background:#fef3c7;color:#92400e} .sev.info{background:var(--brand-bg);color:var(--brand)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .sev.warn{background:#3a2a07;color:#fcd34d}}
+.sg code{display:block;background:var(--panel2);padding:6px 8px;border-radius:6px;font-size:12px;margin:6px 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.sg .fx{color:var(--mute);font-size:13px}
+.ok{padding:12px 16px;font-size:13px;color:var(--mute)}
+.ok b{color:var(--ok)}
+pre.raw{margin:0;padding:12px 16px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#top"><i></i>edgeprobe</a>
+  <div class="links"><a href="#try" class="hide-s">Try it</a><a href="#install" class="hide-s">Install</a><a class="btn" href="https://github.com/gerardrecinto/edgeprobe">GitHub</a></div>
+</div></nav>
+
+<header class="hero" id="top"><div class="wrap">
+  <h1>Is this edge node <em>ready</em> to take the workload?</h1>
+  <p class="lede">edgeprobe reads a captured Linux host snapshot (dmesg, routes, sockets, Kubernetes events, Docker health, wireless telemetry) and says what needs attention, with the evidence line and a fix. The exit code can block a rollout.</p>
+  <div class="cta"><a class="btn primary" href="#try">Triage a snapshot</a><a class="btn" href="#install">Run it</a></div>
+  <div class="stats"><div><b>8</b>signal categories</div><div><b>3</b>severity levels</div><div><b>0</b>uploads from this page</div></div>
+</div></header>
+
+
+<section id="try"><div class="wrap">
+  <h2>Triage a host snapshot</h2>
+  <p class="sub">A snapshot is a folder of captured text: <code>dmesg</code>, routes, sockets, Kubernetes events, Docker rows, wireless telemetry. Pick a sample or edit the files. The real classifier runs in your browser. The samples are made-up lab data, not captures from a real host.</p>
+  <div class="lab">
+    <div class="card">
+      <h3><span>Snapshot files</span><span class="tools" role="group" aria-label="Sample snapshots"><button class="chip" data-s="bad" aria-pressed="true">Failing node</button><button class="chip" data-s="quiet" aria-pressed="false">Quiet node</button></span></h3>
+      <div class="fl" id="fl" role="group" aria-label="Snapshot file"></div>
+      <label class="sr" for="txt">File contents</label>
+      <textarea id="txt" spellcheck="false" wrap="off"></textarea>
+      <div class="ctrl"><label for="fo">Exit non-zero on</label><select id="fo"><option value="critical">critical</option><option value="warn">warn</option><option value="info">info</option></select><span id="exit"></span></div>
+    </div>
+    <div class="card">
+      <h3><span>Report</span><span class="tools" role="group" aria-label="Format"><button class="chip" data-f="report" aria-pressed="true">Report</button><button class="chip" data-f="text" aria-pressed="false">Terminal</button><button class="chip" data-f="json" aria-pressed="false">JSON</button></span></h3>
+      <div class="out" id="out" aria-live="polite"><div class="status" id="boot">Loading the classifier (about 10 MB the first time, cached after)...</div></div>
+    </div>
+  </div>
+  <p class="note">Rules match patterns in text, so they point at where to look. The network rule, for one, matches any default route line, which makes it a prompt to check routes and not a verdict.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>How it works</h2>
+  <p class="sub">Capture on the host, analyze anywhere. The analyzer never touches the machine it reports on.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Capture</h3><p>An Ansible playbook, a Kubernetes DaemonSet or a shell script writes the snapshot files. The analyzer only reads text, so it also runs on a laptop or in CI.</p></div>
+    <div class="step"><div class="n">2</div><h3>Classify</h3><p>Rules cover drivers, network path, Kubernetes, container health, GPU and CPU inventory, cellular and WiFi signal, real-time kernel stalls and build provenance.</p></div>
+    <div class="step"><div class="n">3</div><h3>Gate delivery</h3><p>The exit code follows <code>--fail-on</code>, so a Jenkins or GitHub Actions job can stop a rollout to a node that is not ready. JSON is archived with the build.</p></div>
+  </div>
+</div></section>
+
+<section id="install" class="install"><div class="wrap">
+  <h2>Run it</h2>
+  <p class="sub">Python 3.11 or later. Standard library only.</p>
+  <div class="cols2">
+    <div>
+<pre>git clone https://github.com/gerardrecinto/edgeprobe.git
+cd edgeprobe
+python3 -m pip install -e .
+
+edgeprobe analyze tests/fixtures/host-snapshot
+edgeprobe analyze tests/fixtures/host-snapshot --output json</pre>
+    </div>
+    <div>
+<pre># fail the build on warnings too
+edgeprobe analyze snapshot/ --fail-on warn
+
+# without installing
+PYTHONPATH=src python3 -m edgeprobe analyze snapshot/</pre>
+      <p class="note">Exit code 2 means a signal at or above <code>--fail-on</code>. Exit 1 means the snapshot could not be read.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="limits">
+    <strong>What this does not do</strong>
+    <ul>
+      <li>It does not collect data. You supply the snapshot, and a report is only as good as what was captured.</li>
+      <li>Matching is by keyword and regex. A clean report does not prove a node is healthy.</li>
+      <li>Confidence is a formula over signal and check counts, not a probability.</li>
+      <li>The eBPF probe and DaemonSet in the repo are not exercised by this page.</li>
+    </ul>
+  </div>
+</div></section>
+
+
+<footer><div class="wrap">
+  <span>edgeprobe. MIT licensed. Built by <a href="https://github.com/gerardrecinto">Gerard Recinto</a>.</span>
+  <span><a href="https://github.com/gerardrecinto/edgeprobe">Source</a> &middot; <a href="https://github.com/gerardrecinto/edgeprobe/releases">Releases</a></span>
+</div></footer>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+
+(() => {
+  const FILES = ["__init__.py", "__main__.py", "models.py", "classifier.py", "reporters.py", "cli.py", "parsers/__init__.py", "parsers/snapshot.py"];
+  const NAMES = ["kernel_release.txt", "proc_cmdline.txt", "dmesg.log", "kube_events.log", "docker_ps.txt", "ip_route.txt", "wireless.log", "lspci.txt", "proc_cpuinfo.txt", "ip_addr.txt", "ss.txt"];
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const SAMPLES = { bad: {}, quiet: {
+    "kernel_release.txt": "6.6.32-edge-rt", "proc_cmdline.txt": "BOOT_IMAGE=/vmlinuz-6.6.32-edge-rt root=/dev/nvme0n1p2 ro isolcpus=2-3 nohz_full=2-3 rcu_nocbs=2-3",
+    "dmesg.log": "[    1.204118] nvme nvme0: 8/0/0 default/read/poll queues\n[    2.511930] EXT4-fs (nvme0n1p2): mounted filesystem with ordered data mode", "kube_events.log": "Normal   Pulled   pod/video-ingest-7c5c   Successfully pulled image\nNormal   Started  pod/video-ingest-7c5c   Started container ingest",
+    "docker_ps.txt": "video-ingest   registry.local/video-ingest:8d91   Up 4 minutes (healthy)\nmetrics-agent  registry.local/metrics-agent:2.4   Up 17 hours (healthy)", "ip_route.txt": "10.42.8.0/24 dev eth0 proto kernel scope link src 10.42.8.20",
+    "wireless.log": "wwan0 lte rsrp=-92 rsrq=-9 sinr=14 handover=0", "lspci.txt": "00:02.0 Host bridge: Example Corp Root Complex", "proc_cpuinfo.txt": "model name\t: Example Edge CPU @ 2.40GHz", "ip_addr.txt": "2: eth0    inet 10.42.8.20/24 scope global eth0", "ss.txt": "ESTAB 0 0 10.42.8.20:443 10.42.8.5:51234" } };
+  let py = null, cur = "dmesg.log", files = {}, fmt = "report", last = null, timer = null;
+  const track = (n) => { try { if (window.plausible) window.plausible(n); } catch (e) {} };
+  const PY = `
+import json
+from pathlib import Path
+import shutil
+from edgeprobe.parsers import load_snapshot
+from edgeprobe.classifier import classify
+from edgeprobe.reporters import terminal_report, json_report
+from edgeprobe.cli import _exit_code
+def run(files, fail_on):
+    d = Path("/snap/host-snapshot")
+    shutil.rmtree(d, ignore_errors=True); d.mkdir(parents=True)
+    for k, v in files.items():
+        if v.strip(): (d / k).write_text(v)
+    rep = classify(load_snapshot(d))
+    return json.dumps({"status": rep.status, "summary": rep.summary, "conf": rep.confidence, "exit": _exit_code(rep, fail_on),
+        "signals": [{"cat": str(s.category), "sev": str(s.severity), "title": s.title, "ev": s.evidence, "fix": s.remediation} for s in rep.signals],
+        "passed": list(rep.passed_checks), "text": terminal_report(rep), "json": json_report(rep)})
+`;
+  function tabs() { $("fl").innerHTML = NAMES.map((n) => `<button class="chip ${(files[n] || "").trim() ? "has" : ""}" data-n="${n}" aria-pressed="${n === cur}">${n}</button>`).join(""); }
+  function render() {
+    if (!last) return;
+    const out = $("out");
+    if (last.error) { out.innerHTML = `<div class="status" style="color:var(--err)">${esc(last.error)}</div>`; $("exit").textContent = ""; return; }
+    $("exit").textContent = "exit code " + last.exit;
+    if (fmt === "report") {
+      const cls = { "ACTION REQUIRED": "action", WATCH: "watch", READY: "ready" }[last.status];
+      out.innerHTML = `<div class="stat ${cls}"><b>${esc(last.status)}</b><span>${esc(last.summary)} Confidence ${Math.round(last.conf * 100)}%.</span></div>` +
+        last.signals.map((s) => `<div class="sg"><span class="sev ${s.sev}">${esc(s.sev.toUpperCase())}</span><b>${esc(s.cat.replace(/_/g, " "))}</b><div>${esc(s.title)}</div><code>${esc(s.ev)}</code><div class="fx">${esc(s.fix)}</div></div>`).join("") +
+        `<div class="ok"><b>Passed:</b> ${last.passed.length ? last.passed.map(esc).join(", ") : "none"}</div>`;
+    } else out.innerHTML = `<pre class="raw">${esc(fmt === "text" ? last.text : last.json)}</pre>`;
+  }
+  function lint() {
+    if (!py) return;
+    try { py.globals.set("_f", py.toPy(files)); py.globals.set("_o", $("fo").value); last = JSON.parse(py.runPython("run(_f.to_py() if hasattr(_f, 'to_py') else _f, _o)")); }
+    catch (e) { last = { error: "Could not analyze this snapshot: " + String(e.message || e).trim().split("\n").pop() }; }
+    render();
+  }
+  function setSample(k) { files = Object.assign({}, SAMPLES[k]); NAMES.forEach((n) => { if (!(n in files)) files[n] = ""; }); cur = "dmesg.log"; $("txt").value = files[cur]; document.querySelectorAll("[data-s]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === k)); tabs(); lint(); track("ep_sample_" + k); }
+  $("fl").addEventListener("click", (e) => { const b = e.target.closest("[data-n]"); if (!b) return; cur = b.dataset.n; $("txt").value = files[cur] || ""; tabs(); });
+  $("txt").addEventListener("input", () => { files[cur] = $("txt").value; clearTimeout(timer); timer = setTimeout(() => { tabs(); lint(); }, 250); });
+  $("fo").addEventListener("change", lint);
+  document.querySelectorAll("[data-s]").forEach((b) => b.addEventListener("click", () => setSample(b.dataset.s)));
+  document.querySelectorAll("[data-f]").forEach((b) => b.addEventListener("click", () => { fmt = b.dataset.f; document.querySelectorAll("[data-f]").forEach((x) => x.setAttribute("aria-pressed", x === b)); render(); track("ep_fmt_" + fmt); }));
+  Promise.all(NAMES.map((n) => fetch("fixtures/" + n).then((r) => r.text()))).then((t) => { NAMES.forEach((n, i) => { SAMPLES.bad[n] = t[i].trim(); }); if (py || true) setSample("bad"); }).catch(() => { $("txt").value = "could not load the sample files"; });
+  (async () => {
+    try {
+      py = await loadPyodide();
+      py.FS.mkdirTree("/lib/edgeprobe/parsers");
+      await Promise.all(FILES.map(async (f) => { const r = await fetch("py/" + f); if (!r.ok) throw new Error("could not load " + f); py.FS.writeFile("/lib/edgeprobe/" + f, await r.text()); }));
+      py.runPython("import sys; sys.path.insert(0, '/lib')"); py.runPython(PY);
+      window.__EP_READY__ = true; lint();
+    } catch (e) { $("boot").textContent = "The in-browser classifier did not load (" + String(e.message || e).split("\n").pop() + "). The CLI install below gives the same result."; }
+  })();
+})();
+
+</script>
+</body>
+</html>
